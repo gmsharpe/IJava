@@ -25,9 +25,12 @@ package io.github.spencerpark.ijava.magics;
 
 import io.github.spencerpark.jupyter.kernel.magic.registry.LineMagic;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class ExecMagics {
 
@@ -44,4 +47,27 @@ public class ExecMagics {
             }
         }
     }
+
+    @LineMagic(aliases = "system2")
+    public void bash(List<String> args) throws Exception {
+        System.out.println("Executing BASH command:\n   " + String.join(" ", args));
+        Runtime r = Runtime.getRuntime();
+        try {
+            Process p = r.exec(String.join(" ", args));
+
+            p.waitFor();
+            BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line = "";
+
+            while ((line = b.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            b.close();
+        } catch (Exception e) {
+            System.err.println("Failed to execute bash with command: " + String.join(" ", args));
+            e.printStackTrace();
+        }
+    }
+
 }
